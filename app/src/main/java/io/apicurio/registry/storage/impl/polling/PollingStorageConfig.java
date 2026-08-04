@@ -2,6 +2,7 @@ package io.apicurio.registry.storage.impl.polling;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Configuration interface shared by all polling-based storage implementations.
@@ -71,9 +72,9 @@ public interface PollingStorageConfig {
         if (path == null) {
             return false;
         }
-        String lowerPath = path.toLowerCase();
+        String lowerPath = path.toLowerCase(Locale.ROOT);
         for (String suffix : getFileSuffixes()) {
-            String lowerSuffix = "." + suffix.toLowerCase();
+            String lowerSuffix = "." + suffix.toLowerCase(Locale.ROOT);
             if (lowerPath.endsWith(lowerSuffix + ".yaml")
                     || lowerPath.endsWith(lowerSuffix + ".yml")
                     || lowerPath.endsWith(lowerSuffix + ".json")) {
