@@ -107,4 +107,22 @@ describe("tokenizeTemplate", () => {
     it("handles an empty template", () => {
         expect(tokenizeTemplate("")).toEqual([]);
     });
+
+    it("returns correct results on consecutive calls (regression: global regex lastIndex)", () => {
+        // If HANDLEBARS_TAG were a module-level /g const, the second call would start
+        // exec() with lastIndex still pointing past the end of the first string and
+        // silently return [] instead of the expected tokens.
+        const first = tokenizeTemplate("Hello {{name}}!");
+        const second = tokenizeTemplate("Goodbye {{world}}!");
+        expect(first).toEqual([
+            { text: "Hello ", kind: "plain" },
+            { text: "{{name}}", kind: "variable" },
+            { text: "!", kind: "plain" }
+        ]);
+        expect(second).toEqual([
+            { text: "Goodbye ", kind: "plain" },
+            { text: "{{world}}", kind: "variable" },
+            { text: "!", kind: "plain" }
+        ]);
+    });
 });

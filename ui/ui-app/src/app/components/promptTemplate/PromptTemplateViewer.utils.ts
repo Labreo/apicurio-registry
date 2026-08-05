@@ -7,7 +7,11 @@ export interface TemplateToken {
     kind: TemplateTokenKind;
 }
 
-const HANDLEBARS_TAG = /\{\{!--[\s\S]*?--\}\}|\{\{![\s\S]*?\}\}|\{\{\{[\s\S]*?\}\}\}|\{\{[\s\S]*?\}\}/g;
+// NOTE: this regex must be created inside the function — never as a module-level
+// const with the /g flag. A global RegExp is stateful: exec() advances lastIndex
+// on every match, and on a subsequent call with a different string the search would
+// start mid-string (or beyond it), silently returning no tokens.
+const HANDLEBARS_TAG_PATTERN = /\{\{!--[\s\S]*?--\}\}|\{\{![\s\S]*?\}\}|\{\{\{[\s\S]*?\}\}\}|\{\{[\s\S]*?\}\}/g;
 
 const classifyTag = (tag: string): "variable" | "block" => {
     const inner = tag.replace(/^\{+|\}+$/g, "").trim();
@@ -19,6 +23,10 @@ const classifyTag = (tag: string): "variable" | "block" => {
 };
 
 export const tokenizeTemplate = (template: string): TemplateToken[] => {
+    // Recreate the regex on each call to guarantee lastIndex starts at 0.
+    // A shared module-level /g regex would retain lastIndex across calls and
+    // silently produce empty results on the second and subsequent invocations.
+    const HANDLEBARS_TAG = new RegExp(HANDLEBARS_TAG_PATTERN.source, "g");
     const tokens: TemplateToken[] = [];
     let lastIndex = 0;
     let match;
